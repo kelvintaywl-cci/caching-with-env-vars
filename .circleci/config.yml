@@ -1,27 +1,13 @@
 version: 2.1
 
 jobs:
-  restricted:
+  multiple-folders:
     docker:
       - image: cimg/base:stable
     steps:
-      - restore_cache:
-          key: "{{ .Environment.ORG_CONTEXT_CACHE_SECRET }}-v2"
-      - run:
-          name: Generate file if not exists
-          command: |
-            if [ ! -f ramen.txt ]; then
-              echo "ramen.txt not found; creating one..."
-              curl -s https://ramenipsum.herokuapp.com/paragraphs/1 > ramen.txt
-            fi
-      - save_cache:
-          key: "{{ .Environment.ORG_CONTEXT_CACHE_SECRET }}-v2"
-          paths:
-            - ramen.txt
+      - checkout
 
 workflows:
   main:
     jobs:
-      - restricted:
-          context:
-            - cache
+      - multiple-folders
