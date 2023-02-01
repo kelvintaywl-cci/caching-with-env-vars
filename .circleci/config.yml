@@ -6,6 +6,32 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - run:
+          name: checksum on all required files
+          command: |
+            # using md5sum for quick hashing
+            find . -name *.txt -exec md5sum "{}" + > checksum.out
+      - restore_cache:
+          keys:
+            - v1-{{ checksum "checksum.out" }}
+      - run:
+          name: Install deps
+          command: |
+            # instead of installing deps,
+            # we pretend the deps are installed via the `cat` output of our .txt files
+            cat **/*.txt > deps1.out
+            if [ -f deps.out ] && [ ! $(git diff --no-index --quiet deps.out deps1.out) ]
+            then
+              echo "DEBUG: Diff"
+              rm deps.out
+              mv deps1.out deps.out
+            else
+              echo "DEBUG: No diff"
+            fi
+      - save_cache:
+          key: v1-{{ checksum "checksum.out" }}
+          paths:
+            - deps.out
 
 workflows:
   main:
